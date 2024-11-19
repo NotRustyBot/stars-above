@@ -103,7 +103,7 @@ export class Station {
             const position = Vector.fromAngle(angle)
                 .mult(2000 * i)
                 .add(this.position);
-            const buoy = new Buoy(position);
+            new Buoy(position);
             this.coridoor.push(position);
             angle += 0.1;
         }
@@ -112,7 +112,7 @@ export class Station {
             const position = Vector.fromAngle(((i * Math.PI) / 6) * 2)
                 .mult(this.coridoorRadius)
                 .add(this.position);
-            const buoy = new Buoy(position, 0xff0000);
+            new Buoy(position, 0xff0000);
             angle += 0.1;
         }
     }

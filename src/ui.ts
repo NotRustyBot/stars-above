@@ -1,4 +1,4 @@
-import { Assets, Container, FillGradient, Graphics, NineSliceSprite, Sprite, Text } from "pixi.js";
+import { Assets, Container, Graphics, NineSliceSprite, Sprite, Text } from "pixi.js";
 import { game } from "./game";
 import { clamp, fitImage } from "./utils";
 import { Station } from "./station";
@@ -211,7 +211,7 @@ export class Ui {
         }
 
         this.hint.text = game.story.getHint();
-        let hint = game.story.getHint();
+        const hint = game.story.getHint();
         if (hint != this.lastHint) {
             this.lastHint = hint;
             this.hintCooldown = 60;
@@ -280,7 +280,7 @@ export class Ui {
                 this.moneyChange.style.fill = 0x55ff55;
             }
         }
-        let useDt = dt * 0.5;
+        const useDt = dt * 0.5;
         this.transactionTiming += useDt;
 
         let alpha = 0;

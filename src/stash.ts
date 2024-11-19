@@ -134,7 +134,7 @@ export class Item {
             this.container.addChild(this.sprite);
             game.itemContainer.addChild(this.container);
 
-            let lastPos = new Vector();
+            const lastPos = new Vector();
             this.container.on("mousemove", (e) => {
                 this.inHand = false;
                 if (!this.stashed) {

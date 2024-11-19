@@ -1,4 +1,4 @@
-import { Assets, Color, Container, Graphics, Sprite } from "pixi.js";
+import { Assets, Container, Graphics, Sprite } from "pixi.js";
 import playerPolygon from "./playerPolygon.json";
 import { Vector, Vectorlike } from "./types";
 import { game } from "./game";

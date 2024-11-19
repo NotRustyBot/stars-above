@@ -1,4 +1,4 @@
-import { Container, Graphics, Rectangle } from "pixi.js";
+import { Container, Graphics } from "pixi.js";
 import { Vector } from "./types";
 import { game } from "./game";
 import { Polygon } from "detect-collisions";
