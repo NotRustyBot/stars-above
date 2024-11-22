@@ -6,6 +6,8 @@ import cruiserPolygon from "./cruiser.json";
 import { Beacon } from "./beacon";
 import { Assets, Sprite } from "pixi.js";
 import { Item, ItemType } from "./stash";
+import { Ghost } from "./ghost";
+import { CruiserLogic } from "./cruiserLogic";
 
 enum Progress {
     nothing,
@@ -57,6 +59,7 @@ export class StoryManager {
     loan = 4;
     untilLoan = 10;
     cruiser: SpaceObject;
+    cruiserLogic?: CruiserLogic;
     cruiserGun: Sprite;
     update(dt: number) {
         const s = dt / 60;
@@ -255,13 +258,18 @@ export class StoryManager {
                 this.cruiserGun.anchor.set(0.7, 0.5);
                 this.cruiserGun.x = -1000;
                 this.cruiser.container.addChild(this.cruiserGun);
-                const beacon = new Beacon(0x55ff55);
-                beacon.range = 30000;
-                beacon.position.set(this.cruiser.position.x, this.cruiser.position.y);
+                this.cruiser.beacon = new Beacon(0x55ff55);
+                this.cruiser.beacon.range = 30000;
+                this.cruiser.beacon.position.set(this.cruiser.position.x, this.cruiser.position.y);
+                this.cruiserLogic = new CruiserLogic(this.cruiser);
             }
         } else if (this.progressIndex == Progress.loadPersonellForGate) {
             if (game.player.position.distanceSquared(this.cruiser.position) < 1000 ** 2) {
                 this.progressIndex = Progress.deliverPersonellForGate;
+                this.cruiserLogic.stopAtPoint = 13;
+                for (const civilian of game.civilians) {
+                    if (civilian.index % 3 == 0) civilian.remove();
+                }
             }
         } else if (this.progressIndex == Progress.deliverPersonellForGate) {
             if (game.player.position.distanceSquared(this.gate.position) < 1000 ** 2) {
@@ -272,6 +280,10 @@ export class StoryManager {
         } else if (this.progressIndex == Progress.loadPersonellForBlob) {
             if (game.player.position.distanceSquared(this.cruiser.position) < 1000 ** 2) {
                 this.progressIndex = Progress.deliverPersonellForBlob;
+                this.cruiserLogic.stopAtPoint = 17;
+                for (const civilian of game.civilians) {
+                    if (civilian.index % 3 == 1) civilian.remove();
+                }
             }
         } else if (this.progressIndex == Progress.deliverPersonellForBlob) {
             if (game.player.position.distanceSquared(this.blob.position) < 1000 ** 2) {
@@ -282,21 +294,22 @@ export class StoryManager {
         } else if (this.progressIndex == Progress.loadPersonellForIva) {
             if (game.player.position.distanceSquared(this.cruiser.position) < 1000 ** 2) {
                 this.progressIndex = Progress.deliverPersonellForIva;
+                for (const civilian of game.civilians) {
+                    if (civilian.index % 3 == 2) civilian.remove();
+                }
             }
         } else if (this.progressIndex == Progress.deliverPersonellForIva) {
             if (game.player.position.distanceSquared(this.iva.position) < 1000 ** 2) {
                 this.progressIndex = Progress.allPersonellDelivered;
                 this.licenseCheck();
                 game.player.moneyTransfer(15, "Fare - Military personell");
+                game.ghost = new Ghost();
             }
         }
-
-        if (this.cruiserGun) {
-            this.cruiserGun.rotation = Math.sin(game.time * 0.01) / 5;
-        }
-
         if (this.cruiser) {
-            this.cruiser.container.rotation = -Math.sin(game.time * 0.01) / 5 + 0.2;
+            this.cruiserGun.rotation = Math.sin(game.time * 0.01) / 5;
+            //this.cruiser.container.rotation = -Math.sin(game.time * 0.01) / 5 + 0.2;
+            this.cruiserLogic.update(dt);
         }
 
         this.restrictedAreaCheck();
@@ -398,6 +411,7 @@ export class StoryManager {
                     game.ui.stationUi(selected.from);
                     this.customerStatus = 2;
                     game.voice.say("t" + this.currentCustomerTo.name[0].toLocaleLowerCase() + "c");
+                    this.personOnBoard = "customer";
                 },
                 condition: () => !this.personOnBoard,
             });
@@ -544,9 +558,9 @@ const missionHints: Record<Progress, string> = {
     [Progress.psychologistArrivedGate]: "Go to Gate (purple marker)",
     [Progress.loadPersonellForGate]: "Locate Cruiser (green marker), seen from IVA (blue marker)",
     [Progress.deliverPersonellForGate]: "Deliver personell to Gate (purple marker)",
-    [Progress.loadPersonellForIva]: "Return to Cruiser (green marker), seen from IVA (blue marker)",
-    [Progress.deliverPersonellForIva]: "Deliver personell to IVA (blue marker)",
     [Progress.loadPersonellForBlob]: "Return to Cruiser (green marker), seen from Blob (red marker)",
     [Progress.deliverPersonellForBlob]: "Deliver personell to Blob (red marker)",
+    [Progress.loadPersonellForIva]: "Return to Cruiser (green marker), seen from Gate (purple marker)",
+    [Progress.deliverPersonellForIva]: "Deliver personell to IVA (blue marker)",
     [Progress.allPersonellDelivered]: "?",
 };

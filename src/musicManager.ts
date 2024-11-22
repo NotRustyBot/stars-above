@@ -20,19 +20,37 @@ export class MusicManager {
             { n: 0, of: 2 },
             { n: 5, of: 8 },
         ]),
+        firefight: new Track("./music/firefight.ogg", 360, [
+            { n: 0, of: 64 },
+            { n: 1, of: 64 },
+            { n: 2, of: 64 },
+            { n: 3, of: 64 },
+            { n: 8, of: 64 },
+            { n: 10, of: 64 },
+            { n: 16, of: 64 },
+            { n: 18, of: 64 },
+            { n: 24, of: 64 },
+            { n: 26, of: 64 },
+            { n: 32, of: 64 },
+            { n: 36, of: 64 },
+            { n: 48, of: 64 },
+            { n: 52, of: 64 },
+        ]),
     };
 
     sounds = {
         zoom: new Howl({ src: "./music/zoom.ogg", volume: 0, loop: true, autoplay: true }),
         money: new Howl({ src: "./music/money.ogg", volume: 0.25 }),
+        inhale: new Howl({ src: "./music/inhale.ogg", volume: 0.25 }),
     };
 
     chill = new Array<Track>();
     action = new Array<Track>();
+    combat1 = new Array<Track>();
     currentFamily: Array<Track>;
     beatTrack?: Track;
     constructor() {
-        this.beatTrack = this.music.rocky;
+        this.beatTrack = this.music.short;
         this.beatTrack.targetVolume = 1;
         this.beatTrack.howl.seek(0.1);
         this.beatTrack.howl.play();
@@ -40,6 +58,7 @@ export class MusicManager {
         this.chill.push(this.music.short);
         this.chill.push(this.music.rocky);
         this.action.push(this.music.awaitingGhost);
+        this.combat1.push(this.music.firefight);
         this.currentFamily = this.chill;
     }
 
@@ -92,6 +111,10 @@ export class MusicManager {
         } else {
             this.beatTrack.targetVolume = 1;
         }
+
+        if(game.timeManager.isCheeze){
+            this.beatTrack.targetVolume = 0.1;
+        }
     }
 }
 
@@ -134,7 +157,7 @@ class Track {
     staticUpdate = 0;
     update(dt: number) {
         this.staticUpdate += dt;
-        const updateSpeed = 0.01;
+        const updateSpeed = 0.03;
         while (this.staticUpdate > 1) {
             this.staticUpdate -= 1;
             this.howl.volume(this.targetVolume * updateSpeed + this.howl.volume() * (1 - updateSpeed));

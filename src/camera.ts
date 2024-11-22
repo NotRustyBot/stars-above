@@ -51,7 +51,7 @@ export class Camera {
         }
         this.position = game.player.visualPosition.result().add(speedLookAhead.mult(5 / this.zoom));
         if (this.mode == TrackingMode.playerSoft) {
-            this.targetZoom = Math.max(0.1 * this.hardwareZoom, this.targetZoom);
+            this.targetZoom = Math.max(0.01 * this.hardwareZoom, this.targetZoom);
         }
 
         if (this.mode == TrackingMode.playerAndTarget && this.target) {

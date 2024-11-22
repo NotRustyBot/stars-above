@@ -28,6 +28,12 @@ export class Vector {
         return this
     }
 
+    rotate(angle: number): Vector {
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        return new Vector(this.x * cos - this.y * sin, this.x * sin + this.y * cos);
+    }
+
     length(): number {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }

@@ -11,6 +11,7 @@ export class PlayerControls {
     get brake(){
         return game.keys.has(" ");
     }
+
     get up() {
         return game.keys.has("ArrowUp") || game.keys.has("w");
     }
@@ -32,9 +33,35 @@ export class PlayerControls {
 
     private radar = false;
 
+    get addPressed() {
+        if (this.enter && game.keys.has("x")) {
+            this.enter = false;
+            return true;
+        }
+    }
+
+    private enter = false;
+
+    get removePressed() {
+        if (this.remove && game.keys.has("c")) {
+            this.remove = false;
+            return true;
+        }
+    }
+
+    private remove = false;
+
     update() {
         if(!game.keys.has("r") && !this.radar) {
             this.radar = true;
+        }
+
+        if(!game.keys.has("x") && !this.enter) {
+            this.enter = true;
+        }
+
+        if(!game.keys.has("c") && !this.remove) {
+            this.remove = true;
         }
     }
 }

@@ -1,5 +1,6 @@
 import { Assets, Graphics } from "pixi.js";
 import { Vector, Vectorlike } from "./types";
+import { game } from "./game";
 
 export class OutlinedPolygon {
     graphics: Graphics;
@@ -11,12 +12,14 @@ export class OutlinedPolygon {
     constructor(polygon: Vector[], graphics: Graphics) {
         this.usePolygon = polygon;
         this.graphics = graphics;
+        this.drawPolygon();
     }
 
     drawSkipFrames = 60 / 10;
     drawFrameSkip = 0;
 
-    draw(dt: number) {
+    draw(dt: number) {3
+        if(game.camera.zoom < 0.2) return;
         this.drawFrameSkip += dt;
         while (this.drawFrameSkip > this.drawSkipFrames) {
             this.drawFrameSkip -= this.drawSkipFrames;
@@ -34,11 +37,11 @@ export class OutlinedPolygon {
         this.graphics.clear();
 
         this.outlinePolygon();
-        this.graphics.stroke({ color: 0xffffff, width: 4, alpha: 0.5, cap: "round" });
-        this.graphics.fill({ color: 0xffffff, texture: Assets.get("hash"), alpha: 0.15 });
+        this.graphics.stroke({ color: game.stars[0].color, width: 4, alpha: 0.5, cap: "round" });
+        this.graphics.fill({ color: game.stars[0].color, alpha: 0.15 });
 
         this.outlinePolygon();
-        this.graphics.stroke({ color: 0xffffff, width: 2, cap: "round" });
+        this.graphics.stroke({ color: game.stars[0].color, width: 2, cap: "round" });
         
     }
 

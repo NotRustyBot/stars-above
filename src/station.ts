@@ -70,10 +70,10 @@ export class Station {
 
         let okay = true;
         const disq = game.player.position.distanceSquared(this.position);
-        if (disq < (this.coridoorRadius - 500) ** 2 && disq > this.radius ** 2) {
+        if (disq < (this.coridoorRadius - 500) ** 2 && disq > (this.coridoorRadius - 1500) ** 2) {
             okay = false;
             for (const pos of this.coridoor) {
-                if (game.player.position.distanceSquared(pos) < 2000 ** 2) {
+                if (game.player.position.distanceSquared(pos) < (this.coridoorRadius / 2) ** 2) {
                     okay = true;
                     break;
                 }

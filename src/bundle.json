@@ -31,5 +31,9 @@
     "blank_paper": "./blank_paper.png",
     "cruiser": "./cruiser.png",
     "cruiser_gun": "./cruiser_gun.png",
+    "ghost": "./ghost.png",
+    "ghost_gun": "./ghost_gun.png",
+    "missile": "./missile.png",
+    "civ_butterfly": "./civ_butterfly.png",
     "blob": "./blob.png"
 }

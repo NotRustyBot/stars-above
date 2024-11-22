@@ -3,6 +3,7 @@ import { Vector, Vectorlike } from "./types";
 import { game } from "./game";
 import { OutlinedPolygon } from "./outlinedPolygon";
 import { LightMask } from "./lightMask";
+import { Beacon } from "./beacon";
 
 export class SpaceObject {
     position = new Vector(0, 0);
@@ -12,6 +13,7 @@ export class SpaceObject {
     container: Container;
     outlinedPolygon: OutlinedPolygon;
     mask: LightMask;
+    beacon?: Beacon;
     constructor(sprite: string, position: Vector, polygon: Vectorlike[], polygonImportScale: number) {
         this.position.set(position.x, position.y);
         this.sprite = new Sprite(Assets.get(sprite));
@@ -34,5 +36,7 @@ export class SpaceObject {
         this.container.position.set(this.position.x, this.position.y);
         this.outlinedPolygon.draw(dt);
         this.mask.update(this.position, this.container.rotation);
+
+        if(this.beacon) this.beacon.position.set(this.position.x, this.position.y);
     }
 }

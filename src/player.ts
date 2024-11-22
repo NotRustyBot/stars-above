@@ -8,6 +8,7 @@ import { OutlinedPolygon } from "./outlinedPolygon";
 import { LightMask } from "./lightMask";
 import { ItemType } from "./stash";
 import { Polygon, Response } from "detect-collisions";
+import { Trail } from "./trail";
 
 export interface IRadarable extends ITrackable {
     velocity: Vectorlike;
@@ -46,6 +47,7 @@ export class Player {
     money = 0;
 
     hitbox: Polygon;
+    trail: Trail;
 
     constructor() {
         this.container = new Container();
@@ -82,6 +84,8 @@ export class Player {
         );
 
         this.control.init();
+        this.trail = new Trail(30, 20);
+        this.trail.offset.set(0, 110);
     }
 
     stats = {
@@ -133,17 +137,20 @@ export class Player {
 
         const rotatedAcceleration = Vector.fromAngle(accAngle + angle).mult(accLength);
 
-        while (this.physics > 0) {
-            let useBoost = 1;
-            if (this.boostEffect > 0) {
-                this.boostEffect -= 1;
-                useBoost = this.stats.boost;
-                this.boostCooldown = this.stats.boostCooldown;
-            }
+        let useBoost = 1;
+        if (this.boostEffect > 0) {
+            this.boostEffect -= 1;
+            useBoost = this.stats.boost;
+            this.boostCooldown = this.stats.boostCooldown;
+        }
 
-            this.velocity = this.velocity.add(rotatedAcceleration.result().mult(0.5 * useBoost));
-            this.position = this.position.add(this.velocity.result().mult(1));
-            this.velocity = this.velocity.add(rotatedAcceleration.result().mult(0.5 * useBoost));
+        this.velocity = this.velocity.add(rotatedAcceleration.result().mult(0.5 * useBoost));
+        this.position = this.position.add(this.velocity.result().mult(dt));
+        this.velocity = this.velocity.add(rotatedAcceleration.result().mult(0.5 * useBoost));
+
+        if(game.timeManager.isCheeze) this.physics = 1;
+
+        while (this.physics > 0) {
             this.velocity.mult(this.stats.drag);
             this.physics -= 1;
         }
@@ -158,7 +165,7 @@ export class Player {
             if (this.velocity.length() > 20) {
                 this.moneyTransfer(-5, "Repairs");
             }
-            this.velocity.mult(-1);
+            this.velocity.mult(-0.1);
         });
 
         this.outlinedPolygon.updateAcceleration(this.acceleration);
@@ -174,6 +181,17 @@ export class Player {
         this.orbitalGraphics.stroke({ color: 0xffffff, width: 1, alpha: 0.2 });
 
         this.lightMask.update(this.visualPosition, this.container.rotation);
+
+        this.trail.update(dt, this.visualPosition.result(), this.container.rotation);
+    }
+
+    teleport(x: number, y: number) {
+        this.position.x = x;
+        this.position.y = y;
+        this.visualPosition.x = x;
+        this.visualPosition.y = y;
+        this.trail.teleport(this.visualPosition.result());
+        game.camera.smoothPosition = this.visualPosition.result();
     }
 
     updateSignals() {
