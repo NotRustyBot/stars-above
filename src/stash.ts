@@ -28,6 +28,7 @@ export enum ItemType {
     blankPaper,
     transparency,
     loanForm,
+    releaseOfLiability,
 }
 
 const ItemDefintions: Record<ItemType, ItemTemplate> = {
@@ -36,6 +37,7 @@ const ItemDefintions: Record<ItemType, ItemTemplate> = {
         icon: "sticky",
         tags: {
             paper: true,
+            form: true,
             placable: true,
         },
     },
@@ -93,11 +95,24 @@ const ItemDefintions: Record<ItemType, ItemTemplate> = {
             form: true,
         },
     },
+    [ItemType.releaseOfLiability]: {
+        icon: "liability",
+        sprite: "liability",
+        tags: {
+            paper: true,
+            placable: true,
+            form: true,
+        },
+    },
 };
 
 const loanFormRects = {
     loan: new Rectangle(50, 150, 25, 25),
     payoff: new Rectangle(50, 250, 25, 25),
+    sign: new Rectangle(60, 410, 300, 40),
+};
+
+const liabilityFormRects = {
     sign: new Rectangle(60, 410, 300, 40),
 };
 
@@ -208,6 +223,12 @@ export class Item {
                 this.canvas.rect(loanFormRects.payoff.x, loanFormRects.payoff.y, loanFormRects.payoff.width, loanFormRects.payoff.height).stroke(style);
                 this.canvas.rect(loanFormRects.sign.x, loanFormRects.sign.y, loanFormRects.sign.width, loanFormRects.sign.height).stroke(style);
             }
+
+            
+            if (this.type == ItemType.releaseOfLiability) {
+                const style = { color: 0x333333, alpha: 1, width: 5 };
+                this.canvas.rect(liabilityFormRects.sign.x, liabilityFormRects.sign.y, liabilityFormRects.sign.width, liabilityFormRects.sign.height).stroke(style);
+            }
         }
     }
 
@@ -242,7 +263,12 @@ export class Item {
             this.fGreen.text = "";
             this.fRed.text = "";
 
-            for (const transaction of game.player.transactions) {
+            let skip = 0;
+            if(game.player.transactions.length > 28){
+                skip = game.player.transactions.length - 28;
+            }
+
+            for (const transaction of game.player.transactions.slice(skip)) {
                 this.fDesc.text += `${transaction.reason}\n`;
 
                 if (transaction.amount >= 0) this.fGreen.text += `+${transaction.amount.toFixed(2)}`;
@@ -256,6 +282,10 @@ export class Item {
 
     evaluateLoan() {
         return this.evaluateForm(loanFormRects) as { loan: boolean; payoff: boolean; sign: boolean } | false;
+    }
+
+    evaluateLiability() {
+        return this.evaluateForm(liabilityFormRects) as { sign: boolean } | false;
     }
 
     remove(){

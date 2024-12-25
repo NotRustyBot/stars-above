@@ -60,16 +60,31 @@ export class Asteroid {
         return polygon;
     }
 
+    updateHitbox() {
+        this.hitbox.setPosition(this.position.x, this.position.y);
+        this.hitbox.updateBody();
+    }
+
+    remove() {
+        game.asteroids = game.asteroids.filter((a) => a != this);
+        this.container.destroy();
+        game.system.remove(this.hitbox);
+    }
+
     update(dt: number) {
-        if (game.camera.view.clone().pad(this.radius * 2).contains(this.position.x, this.position.y)) {
+        if (
+            game.camera.view
+                .clone()
+                .pad(this.radius * 2)
+                .contains(this.position.x, this.position.y)
+        ) {
             this.container.visible = true;
         } else {
             this.container.visible = false;
             return;
         }
         this.container.position.set(this.position.x, this.position.y);
-        this.hitbox.setPosition(this.position.x, this.position.y);
-        this.hitbox.updateBody();
+        this.updateHitbox();
         this.mask.update(this.position, this.graphics.rotation);
         this.outlinedPolygon.draw(dt);
     }

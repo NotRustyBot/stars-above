@@ -63,7 +63,7 @@ export class Trail {
         }
 
         this.graphics.closePath();
-        this.graphics.fill({ color: 0xffffff, alpha: 0.1 });
+        this.graphics.fill({ color: game.stars[0].color, alpha: 0.1 });
 
         while (this.timer > 0.1) {
             this.lindex++;

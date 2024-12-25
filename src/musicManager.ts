@@ -36,12 +36,28 @@ export class MusicManager {
             { n: 48, of: 64 },
             { n: 52, of: 64 },
         ]),
+        firefight2: new Track("./music/firefight2.ogg", 280, [
+            { n: 0, of: 16 },
+            { n: 2, of: 16 },
+            { n: 3, of: 16 },
+            { n: 4, of: 16 },
+            { n: 6, of: 16 },
+            { n: 8, of: 16 },
+            { n: 10, of: 16 },
+            { n: 12, of: 16 },
+            { n: 14, of: 16 },
+
+        ]),
     };
 
     sounds = {
         zoom: new Howl({ src: "./music/zoom.ogg", volume: 0, loop: true, autoplay: true }),
         money: new Howl({ src: "./music/money.ogg", volume: 0.25 }),
-        inhale: new Howl({ src: "./music/inhale.ogg", volume: 0.25 }),
+        inhale: new Howl({ src: "./music/inhale.ogg", volume: 0.5 }),
+        key: new Howl({ src: "./music/key.ogg", volume: 1 }),
+        click: new Howl({ src: "./music/click.ogg", volume: 1 }),
+        piano1: new Howl({ src: "./music/pianoStinger1.ogg", volume: 0.25 }),
+        piano2: new Howl({ src: "./music/pianoStinger2.ogg", volume: 0.25 }),
     };
 
     chill = new Array<Track>();
@@ -49,6 +65,8 @@ export class MusicManager {
     combat1 = new Array<Track>();
     currentFamily: Array<Track>;
     beatTrack?: Track;
+
+    noMusic = false;
     constructor() {
         this.beatTrack = this.music.short;
         this.beatTrack.targetVolume = 1;
@@ -58,33 +76,33 @@ export class MusicManager {
         this.chill.push(this.music.short);
         this.chill.push(this.music.rocky);
         this.action.push(this.music.awaitingGhost);
-        this.combat1.push(this.music.firefight);
+        this.combat1.push(this.music.firefight2);
         this.currentFamily = this.chill;
     }
 
     get isBeat() {
-        if (this.beatTrack) {
+        if (this.beatTrack && !this.noMusic) {
             return this.beatTrack.isBeat;
         }
         return false;
     }
 
     get sinceBeat() {
-        if (this.beatTrack) {
+        if (this.beatTrack && !this.noMusic) {
             return this.beatTrack.sinceBeat;
         }
         return 0;
     }
 
     get isGoodBeat() {
-        if (this.beatTrack) {
+        if (this.beatTrack && !this.noMusic) {
             return this.beatTrack.isGoodBeat;
         }
         return false;
     }
 
     get beat() {
-        if (this.beatTrack) {
+        if (this.beatTrack && !this.noMusic) {
             return this.beatTrack.beat;
         }
         return 0;
@@ -95,7 +113,7 @@ export class MusicManager {
             track.update(dt);
         }
 
-        if (this.beatTrack.howl.seek() == 0) {
+        if (this.beatTrack.howl.seek() == 0 && !game.story.isNightmare) {
             this.beatTrack.howl.stop();
             this.beatTrack = pickRandom(this.currentFamily);
             this.beatTrack.howl.play();
@@ -106,14 +124,22 @@ export class MusicManager {
             this.beatTrack.targetVolume = 0;
         }
 
+        this.beatTrack.targetVolume = 1;
+
         if (game.voice.isSaying) {
             this.beatTrack.targetVolume = 0.2;
-        } else {
-            this.beatTrack.targetVolume = 1;
         }
 
-        if(game.timeManager.isCheeze){
+        if (game.story.isNightmare) {
+            this.beatTrack.targetVolume = 0;
+        }
+
+        if (game.timeManager.isCheeze) {
             this.beatTrack.targetVolume = 0.1;
+        }
+
+        if(this.noMusic){
+            this.beatTrack.targetVolume = 0;
         }
     }
 }

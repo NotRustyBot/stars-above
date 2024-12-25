@@ -4,7 +4,7 @@ export class PlayerControls {
     boost = false;
     init(){
         game.backgroundContainer.interactive = true;
-        game.backgroundContainer.on("pointerdown", (e) => this.boost = game.stash.activeItem == undefined && !game.stash.items.some((i) => i.inHand));
+        game.backgroundContainer.on("pointerdown", (e) => this.boost = !game.stash.items.some((i) => i.inHand));
         game.backgroundContainer.on("pointerup", (e) => this.boost = false);
     }
 
@@ -32,6 +32,15 @@ export class PlayerControls {
     }
 
     private radar = false;
+
+    get skipDialog() {
+        if (this.dialog && game.keys.has("l")) {
+            this.dialog = false;
+            return true;
+        }
+    }
+
+    private dialog = false;
 
     get addPressed() {
         if (this.enter && game.keys.has("x")) {
@@ -62,6 +71,10 @@ export class PlayerControls {
 
         if(!game.keys.has("c") && !this.remove) {
             this.remove = true;
+        }
+
+        if(!game.keys.has("l") && !this.dialog) {
+            this.dialog = true;
         }
     }
 }

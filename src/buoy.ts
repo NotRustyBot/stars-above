@@ -29,7 +29,6 @@ export class Buoy {
         game.objectContainer.addChild(this.container);
         game.buoys.push(this);
 
-
         const usePolygon = buoyPolygon.map((v) => new Vector(v.x * 1, v.y * 1));
 
         this.graphics = new Graphics();
@@ -49,5 +48,11 @@ export class Buoy {
         if (game.music.isBeat && game.music.isGoodBeat) {
             this.glow.visible = !this.glow.visible;
         }
+    }
+
+    remove() {
+        game.buoys = game.buoys.filter((b) => b != this);
+        this.container.destroy();
+        this.glow.destroy();
     }
 }

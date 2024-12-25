@@ -31,6 +31,7 @@ import { TimeManager } from "./timeManager";
 import { Flak } from "./flak";
 import { PathTracer } from "./pathtracer";
 import { Civilian } from "./civilian";
+import { GoldenDust } from "./goldenDust";
 export let game: Game;
 export class Game {
     timeManager: TimeManager;
@@ -50,8 +51,13 @@ export class Game {
     trailContainer: Container;
     realUiContainer: Container;
     realContainer: Container;
+    uiUnderContainer: Container;
     uiContainer: Container;
+    starMaskContainer: Container;
     itemContainer: Container;
+    nightmareContainer: Container;
+    intermissionContainer: Container;
+
 
     background!: Background;
     music!: MusicManager;
@@ -77,6 +83,8 @@ export class Game {
     trailedParticles = new Set<TrailedParticle>();
     flak = new Set<Flak>();
     civilians = new Set<Civilian>();
+    goldenDust = new Set<GoldenDust>();
+
 
     keys = new Set<string>();
 
@@ -92,8 +100,12 @@ export class Game {
         this.trailContainer = new Container();
         this.realUiContainer = new Container();
         this.realContainer = new Container();
+        this.uiUnderContainer = new Container();
         this.uiContainer = new Container();
+        this.starMaskContainer = new Container();
         this.itemContainer = new Container();
+        this.nightmareContainer = new Container();
+        this.intermissionContainer = new Container();
         this.music = new MusicManager();
         this.timeManager = new TimeManager();
 
@@ -135,19 +147,22 @@ export class Game {
         this.realContainer.addChild(this.realUiContainer);
         this.realContainer.addChild(this.playerContainer);
         this.realContainer.addChild(this.trailContainer);
+        this.realContainer.addChild(this.nightmareContainer);
+        this.app.stage.addChild(this.uiUnderContainer);
         this.app.stage.addChild(this.uiContainer);
+        this.app.stage.addChild(this.starMaskContainer);
         this.app.stage.addChild(this.itemContainer);
+        this.app.stage.addChild(this.intermissionContainer);
 
         window.addEventListener("resize", () => this.resize());
         this.resize();
-
-
 
         for (let index = 0; index < 50; index++) {
             const asteroid = new Asteroid(100 + Math.abs(Math.sin(index * 4.3)) * 1000);
             const angle = (index / 50) * Math.PI * 2;
             const pos = Vector.fromAngle(angle).mult(20000 + 3000 * Math.abs(Math.cos(index)));
             asteroid.position.set(pos.x, pos.y);
+            asteroid.updateHitbox();
             this.asteroids.push(asteroid);
         }
 
@@ -160,8 +175,7 @@ export class Game {
         const starsat = new SpaceObject("starsat", new Vector(-4000, 1000), starsatPolygon, 1);
         starsat.container.rotation = -Math.PI / 8;
         this.story.starsat = starsat;
-        const b = new Beacon(0xffff00);
-        b.position.set(-4000, 1000);
+        this.story.starsat.beacon = new Beacon(0xffff00);
 
         this.story.blob.name = "Blob";
         this.story.blob.description = "Transport hub of this system. Renew your license here.";
@@ -174,7 +188,7 @@ export class Game {
             action: () => {
                 game.story.blob.services = game.story.blob.services.filter((s) => s.name != "Disable Drag Emulator");
                 game.ui.stationUi(game.story.blob);
-                this.player.stats.drag = 0.995;
+                this.player.stats.drag = 0.992;
                 this.player.moneyTransfer(-55, "Engine Mod");
             },
             condition: () => {
@@ -184,7 +198,7 @@ export class Game {
 
         const boostMod = {
             name: '"Kickback" Modification',
-            description: "This ramshackle modification will make your Crow faster, but less controllable.",
+            description: "Click for a temporary, rechargable boost. Works with brakes, too!",
             image: null,
             value: "cost: 45c",
             action: () => {
@@ -193,6 +207,7 @@ export class Game {
                 game.ui.stationUi(game.story.blob);
                 this.player.boostUnlocked = true;
                 this.player.moneyTransfer(-45, "Engine Mod");
+                game.story.maxTutorialIndex = 7;
             },
             condition: () => {
                 return this.player.money >= 45;
@@ -282,52 +297,61 @@ export class Game {
         this.music.update(game.timeManager.realDt);
         this.player.update(this.timeManager.playerDt());
         this.camera.update(dt);
-        this.ui.update(game.timeManager.realDt);
 
-        for (const asteroid of this.asteroids) {
-            asteroid.update(dt);
+        if (!game.story.isNightmare) {
+            this.ui.update(game.timeManager.realDt);
+
+            for (const asteroid of this.asteroids) {
+                asteroid.update(dt);
+            }
+
+            for (const star of this.stars) {
+                star.update(dt);
+            }
+
+            for (const buoy of this.buoys) {
+                buoy.update(dt);
+            }
+
+            for (const station of this.stations) {
+                station.update(dt);
+            }
+
+            for (const spaceObject of this.spaceObjects) {
+                spaceObject.update(dt);
+            }
+
+            this.ghost?.update(dt);
+
+            for (const missile of this.missiles) {
+                missile.update(dt);
+            }
+
+            for (const trail of this.detachedTrails) {
+                trail.update(dt);
+            }
+
+            for (const particle of this.trailedParticles) {
+                particle.update(dt);
+            }
+
+            for (const flak of this.flak) {
+                flak.update(dt);
+            }
+
+            for (const civilian of this.civilians) {
+                civilian.update(dt);
+            }
+
+            for (const goldenDust of this.goldenDust) {
+                goldenDust.update(dt);
+            }
+
+
+            this.stash.update(dt);
         }
 
-        for (const star of this.stars) {
-            star.update(dt);
-        }
-
-        for (const buoy of this.buoys) {
-            buoy.update(dt);
-        }
-
-        for (const station of this.stations) {
-            station.update(dt);
-        }
-
-        for (const spaceObject of this.spaceObjects) {
-            spaceObject.update(dt);
-        }
-
-        this.ghost?.update(dt);
-
-        for (const missile of this.missiles) {
-            missile.update(dt);
-        }
-
-        for (const trail of this.detachedTrails) {
-            trail.update(dt);
-        }
-
-        for (const particle of this.trailedParticles) {
-            particle.update(dt);
-        }
-
-        for (const flak of this.flak) {
-            flak.update(dt);
-        }
-
-        for (const civilian of this.civilians) {
-            civilian.update(dt);
-        }
-
-        this.stash.update(dt);
-
+        this.background.draw();
         this.story.update(dt);
 
         PathTracer.update();
@@ -335,8 +359,34 @@ export class Game {
         console.log(recursiveContainerCounter(this.app.stage));
     }
 
-    clear(){
+    clear() {
         this.app.stage.removeChildren();
+    }
+
+    softClear(){
+        for (const asteroid of this.asteroids) {
+            asteroid.remove();
+        }
+
+        for (const buoy of this.buoys) {
+            buoy.remove();
+        }
+
+    for (const station of this.stations) {
+            station.remove();
+        }
+
+        for (const spaceObject of this.spaceObjects) {
+            spaceObject.remove();
+        }
+
+        for (const civilian of this.civilians) {
+            civilian.remove();
+        }
+
+        for (const goldenDust of this.goldenDust) {
+            goldenDust.remove();
+        }
     }
 }
 

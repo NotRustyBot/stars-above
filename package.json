@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsc && vite build",
+    "upload": "npm run build && 7z a -tzip static.zip .\\dist\\* && butler push static.zip notrustybot/stardrawn:web",
     "preview": "vite preview"
   },
   "devDependencies": {

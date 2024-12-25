@@ -40,7 +40,7 @@ export class GhostMissile {
 
     hitbox: Point;
 
-    untilCheeze = 0.02;
+    untilCheeze = 0.001;
 
     update(dt: number) {
         this.life -= dt / 60;

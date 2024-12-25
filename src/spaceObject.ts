@@ -39,4 +39,10 @@ export class SpaceObject {
 
         if(this.beacon) this.beacon.position.set(this.position.x, this.position.y);
     }
+
+    remove() {
+        this.container.destroy();
+        game.spaceObjects.splice(game.spaceObjects.indexOf(this), 1);
+        if(this.beacon) this.beacon.remove();
+    }
 }

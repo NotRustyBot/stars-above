@@ -102,8 +102,9 @@ export class Civilian {
         if (nstDistSq > 1500 ** 2) {
             this.hitbox.rotate(this.sprite.rotation);
             this.hitbox.setPosition(this.position.x, this.position.y);
+            this.hitbox.group = 0x7fffffff;
         } else {
-            this.hitbox.setPosition(0, 0);
+            this.hitbox.group = 0;
         }
 
         if (game.camera.view.clone().pad(this.sprite.width * 2).contains(this.position.x, this.position.y)) {

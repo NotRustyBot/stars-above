@@ -1,6 +1,7 @@
 import { Assets, Graphics, Sprite } from "pixi.js";
 import { Vector } from "./types";
 import { game } from "./game";
+import { interpolateColors } from "./utils";
 
 export class Star {
     color: number = 0xffffff;
@@ -49,6 +50,12 @@ export class Star {
         game.ui.starMask.moveTo(this.position.x, this.position.y);
         game.ui.starMask.lineTo(game.player.position.x, game.player.position.y);
         game.ui.starMask.lineTo(this.position.x, this.position.y);
+
+        this.glow.tint = this.color;
+        interpolateColors(this.color, 0xffffff, 0.5);
+        
+        this.glow.setSize(this.size * 4);
+        if (game.voice.isSaying && game.voice.characterId == "x") this.glow.setSize(this.size * 4 + 30 * Math.sin(game.time / 3));
 
         game.ui.starMask.stroke({ color: this.color, alpha: 0.1, width: this.size * 4, cap: "round" });
 

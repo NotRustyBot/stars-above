@@ -80,7 +80,7 @@ export class Station {
             }
         }
 
-        if (disq < this.radius ** 2) {
+        if (disq < this.radius ** 2 && !game.story.useAftermathLogic) {
             if (!this.showingMyServices) {
                 game.ui.stationUi(this);
                 this.showingMyServices = true;
@@ -115,5 +115,11 @@ export class Station {
             new Buoy(position, 0xff0000);
             angle += 0.1;
         }
+    }
+
+    remove() {
+        game.player.signals = game.player.signals.filter((s) => s != this);
+        game.stations = game.stations.filter((s) => s != this);
+        this.container.destroy();
     }
 }

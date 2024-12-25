@@ -27,10 +27,8 @@ export class Player {
     visualPosition = new Vector(0, 0);
     velocity = new Vector(0, 0);
     container: Container;
-    radar: Graphics;
     signal: Graphics;
     graphics: Graphics;
-    orbitalGraphics: Graphics;
     sprite: Sprite;
     acceleration = new Vector(0, 0);
     lightMask: LightMask;
@@ -52,9 +50,7 @@ export class Player {
     constructor() {
         this.container = new Container();
         this.graphics = new Graphics();
-        this.radar = new Graphics();
         this.signal = new Graphics();
-        this.orbitalGraphics = new Graphics();
         this.sprite = new Sprite(Assets.get("ply"));
         this.sprite.anchor.set(0.5, 0.5);
 
@@ -62,9 +58,7 @@ export class Player {
 
         this.container.addChild(this.graphics);
         this.container.addChild(this.sprite);
-        game.realUiContainer.addChild(this.radar);
         game.realUiContainer.addChild(this.signal);
-        game.realUiContainer.addChild(this.orbitalGraphics);
         game.playerContainer.addChild(this.container);
         this.outlinedPolygon = new OutlinedPolygon(
             playerPolygon.map((v) => new Vector(v.x * polygonImportScale, v.y * polygonImportScale)),
@@ -99,6 +93,9 @@ export class Player {
     physics = 0;
     boostCooldown = 0;
     boostEffect = 0;
+
+    totalRotation = 0;
+
     boostUnlocked = false;
     update(dt: number) {
         const s = dt / 60;
@@ -118,6 +115,7 @@ export class Player {
         if (this.control.right) this.acceleration.x += this.stats.baseThrust;
 
         const angle = this.getMouse().toAngle() + Math.PI / 2;
+        this.totalRotation += Math.abs(angle - this.container.rotation);
         this.container.rotation = angle;
 
         let accLength = this.acceleration.length();
@@ -160,9 +158,11 @@ export class Player {
         this.hitbox.updateBody();
 
         game.system.checkOne(this.hitbox, (e: Response) => {
+            console.log( e.b);
+            
             this.position.x -= e.overlapV.x;
             this.position.y -= e.overlapV.y;
-            if (this.velocity.length() > 20) {
+            if (this.velocity.length() > 20 && !game.story.useStarLogic) {
                 this.moneyTransfer(-5, "Repairs");
             }
             this.velocity.mult(-0.1);
@@ -178,11 +178,12 @@ export class Player {
         this.container.position.set(this.visualPosition.x, this.visualPosition.y);
 
         this.updateSignals();
-        this.orbitalGraphics.stroke({ color: 0xffffff, width: 1, alpha: 0.2 });
 
         this.lightMask.update(this.visualPosition, this.container.rotation);
 
         this.trail.update(dt, this.visualPosition.result(), this.container.rotation);
+
+        if(this.control.skipDialog) game.voice.forceEnd();
     }
 
     teleport(x: number, y: number) {

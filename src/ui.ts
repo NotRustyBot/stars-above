@@ -1,6 +1,6 @@
-import { Assets, Container, Graphics, NineSliceSprite, Sprite, Text } from "pixi.js";
+import { Assets, BlurFilter, Container, Graphics, NineSliceSprite, RenderTexture, Sprite, Text } from "pixi.js";
 import { game } from "./game";
-import { clamp, fitImage } from "./utils";
+import { clamp, fitImage, interpolateColors } from "./utils";
 import { Station } from "./station";
 
 export class Ui {
@@ -15,6 +15,11 @@ export class Ui {
     customerTitle: Text;
     customerPfp: Sprite;
 
+    progressContainer = new Container();
+    progressEdge: NineSliceSprite;
+    progressBg: Graphics;
+    progressText: Text;
+
     topBarContainer: Container;
     topBarBg: Graphics;
     hint: Text;
@@ -23,6 +28,7 @@ export class Ui {
     moneyChangeReason: Text;
     license: Text;
     licenseHeader: Text;
+    tutorialText: Text;
 
     stationContainer = new Container();
 
@@ -36,6 +42,9 @@ export class Ui {
 
     stashOpen = false;
 
+    renderTexture: RenderTexture;
+    renderSprite: Sprite;
+
     constructor() {
         this.starMask = new Graphics();
         game.realUiContainer.addChild(this.starMask);
@@ -47,9 +56,15 @@ export class Ui {
             rightWidth: 15,
         });
 
+        this.renderTexture = RenderTexture.create({ resolution: 0.5 });
+        this.renderTexture.dynamic = true;
+        this.renderSprite = new Sprite(this.renderTexture);
+        game.uiUnderContainer.addChild(this.renderSprite);
+        this.renderSprite.filters = [new BlurFilter({ strength: 5 })];
+
         this.screenEdge.mask = this.starMask;
         this.screenEdge.alpha = 0.5;
-        game.uiContainer.addChild(this.screenEdge);
+        game.starMaskContainer.addChild(this.screenEdge);
 
         this.subtitlesName = new Text({ style: { fontSize: 30, align: "center" } });
         this.subtitlesName.anchor.set(0.5, 0);
@@ -75,13 +90,37 @@ export class Ui {
 
         game.uiContainer.addChild(this.stationContainer);
 
+        this.progressBg = new Graphics();
+        this.progressContainer.addChild(this.progressBg);
+
+        this.progressEdge = new NineSliceSprite({
+            texture: Assets.get("9slice"),
+            leftWidth: 80,
+            rightWidth: 80,
+            topHeight: 80,
+            bottomHeight: 80,
+        });
+        this.progressEdge.height = 50;
+
+        this.progressContainer.addChild(this.progressEdge);
+
+        this.progressText = new Text({ text: "0", style: { fontSize: 30, fill: 0xffffff, align: "center" } });
+        this.progressText.y = 10;
+        this.progressText.anchor.set(0.5, 0);
+        this.progressContainer.addChild(this.progressText);
+
+        game.uiContainer.addChild(this.progressContainer);
+
         this.topBarBg = new Graphics();
 
         this.money = new Text({ text: "0c", style: { fontSize: 30 } });
         this.money.anchor.set(0, 0.5);
 
-        this.hint = new Text({ text: "", style: { fontSize: 30, align: "center", fill: 0xaaaaaa } });
-        this.hint.anchor.set(0.5, 0.5);
+        this.hint = new Text({ text: "", style: { fontSize: 30, fill: 0xaaaaaa } });
+        this.hint.anchor.set(0, 0);
+
+        this.tutorialText = new Text({ text: "", style: { fontSize: 30, align: "center", fill: 0xaaaaaa } });
+        this.tutorialText.anchor.set(0.5, 0);
 
         this.moneyChange = new Text({ style: { fontSize: 30 } });
         this.moneyChange.anchor.set(0, 0.5);
@@ -98,6 +137,7 @@ export class Ui {
         this.topBarContainer.addChild(this.topBarBg);
         this.topBarContainer.addChild(this.money);
         this.topBarContainer.addChild(this.hint);
+        this.topBarContainer.addChild(this.tutorialText);
         this.topBarContainer.addChild(this.moneyChange);
         this.topBarContainer.addChild(this.moneyChangeReason);
         this.topBarContainer.addChild(this.license);
@@ -127,6 +167,11 @@ export class Ui {
         this.customerContainer.addChild(this.customerTitle);
         this.customerContainer.addChild(this.customerPfp);
 
+        this.progressContainer.position.set(window.innerWidth / 4, 120);
+        this.progressEdge.position.set(0, 0);
+        this.progressEdge.width = window.innerWidth / 2;
+        this.progressText.position.x = this.progressEdge.width / 2;
+
         window.addEventListener("resize", () => {
             this.resize();
         });
@@ -136,6 +181,12 @@ export class Ui {
     }
 
     say(line: string, name: string, color: number) {
+        if (line.length > 200) {
+            this.subtitles.style.fontSize = 18;
+        } else {
+            this.subtitles.style.fontSize = 24;
+        }
+
         this.subtitles.text = line;
         this.subtitlesName.text = name;
         this.subtitlesName.style.fill = color;
@@ -161,21 +212,24 @@ export class Ui {
         this.subtitles.position.set(window.innerWidth / 2, window.innerHeight - 100);
         this.subtitlesName.position.set(window.innerWidth / 2, window.innerHeight - 140);
 
-        this.topBarBg.clear();
-        this.topBarBg.rect(0, 0, window.innerWidth, 50);
-        this.topBarBg.fill({ color: 0x000000, alpha: 0.5 });
-        this.hint.position.set(window.innerWidth / 2, 25);
+        this.hint.position.set(50, 110);
+        this.tutorialText.position.set(window.innerWidth / 2, (window.innerHeight / 3) * 2);
         this.money.position.set(50, 25);
-        this.moneyChange.position.set(50, 50);
-        this.moneyChangeReason.position.set(150, 50);
+        this.moneyChange.position.set(50, 80);
+        this.moneyChangeReason.position.set(150, 80);
         this.licenseHeader.position.set(window.innerWidth - 220, 25);
         this.license.position.set(window.innerWidth - 100, 25);
 
         this.stationContainer.position.set(50, window.innerHeight / 2 - 300);
 
         this.customerContainer.position.set(200, 10);
+        this.customerContainer.position.set(200, 10);
 
         this.boostGraphic.position.set(0, window.innerHeight - 2);
+
+        this.renderTexture.resize(window.innerWidth, window.innerHeight);
+        this.renderTexture.updateUvs();
+        this.renderSprite.setSize(window.innerWidth, window.innerHeight);
     }
 
     pfpJumpDirection: number = 1;
@@ -195,9 +249,19 @@ export class Ui {
         if (game.music.isGoodBeat) this.pfp.x -= 5 * (1 - game.music.sinceBeat) * this.pfpJumpDirection;
         if (game.music.isGoodBeat) this.pfp.y -= 5 * (1 - game.music.sinceBeat);
 
+        this.topBarBg.clear();
+        this.topBarBg.rect(0, 0, window.innerWidth, 50);
+        this.topBarBg.fill({ color: 0x000000, alpha: 0.5 });
+
         if (game.player.license > 0) {
             this.license.text = `${game.player.license.toFixed(0)}s`;
             this.license.style.fill = 0xffaa99;
+
+            if (game.player.license < 30) {
+                this.topBarBg.clear();
+                this.topBarBg.rect(0, 0, window.innerWidth, 50);
+                this.topBarBg.fill({ color: 0x550000, alpha: 0.5 });
+            }
         } else {
             this.license.text = `NONE`;
             this.license.style.fill = 0xff5555;
@@ -239,7 +303,7 @@ export class Ui {
 
         this.topBarContainer.alpha = clamp(1 - game.player.velocity.length() / 10, 0.25, 1);
 
-        this.pfp.scale.x = this.pfpJumpDirection;
+        this.pfp.rotation = this.pfpJumpDirection / 5;
 
         this.processTransations(dt);
 
@@ -260,7 +324,58 @@ export class Ui {
             }
             this.boostGraphic.rect(0, 0, window.innerWidth * boostLine, 2).fill({ color: boostColor, alpha: 0.5 });
         }
+
+        const progressInfo = game.story.getProgress();
+        this.progressBg.clear();
+        if (progressInfo) {
+            this.progressContainer.visible = true;
+            const progress = Math.floor(((progressInfo.ratio * window.innerWidth) / 2) * 0.1) * 10;
+            this.progressText.text = `${progressInfo.text} ${Math.floor(progressInfo.ratio * 100)}%`;
+            this.progressBg.rect(10, 10, progress - 20, 30).fill({ color: progressInfo.color, texture: Assets.get("progress"), alpha: 0.5 });
+        } else {
+            this.progressContainer.visible = false;
+        }
+
+        if (game.story.useUiBlur) {
+            if (game.music.isGoodBeat) {
+                this.renderSprite.tint = interpolateColors(0xff0000, 0xffffff, game.music.sinceBeat);
+            }
+            this.renderSprite.y = Math.floor(game.time * 123) % 10;
+            (this.renderSprite.filters[0] as BlurFilter).strengthY = 20;
+        } else {
+            (this.renderSprite.filters[0] as BlurFilter).strengthY = 5;
+            this.renderSprite.y = 0;
+            this.renderSprite.tint = 0xffffff;
+        }
+
+        if (this.isTutorialCompleted && this.tutorialCompletedFadeout > 0) {
+            this.tutorialCompletedFadeout -= Math.max(0, dt / 60);
+            this.tutorialText.alpha = this.tutorialCompletedFadeout;
+        }
+
+        game.app.renderer.render({
+            target: this.renderTexture,
+            container: game.uiContainer,
+        });
+
+        this.screenEdge.tint = game.stars[0].color;
     }
+
+    setTutorialText(text: string) {
+        this.isTutorialCompleted = false;
+        this.tutorialText.text = text;
+        this.tutorialText.style.fill = 0xffffff;
+        this.tutorialText.alpha = 1;
+    }
+
+    completeTutorial() {
+        this.tutorialCompletedFadeout = 1;
+        this.isTutorialCompleted = true;
+        this.tutorialText.style.fill = 0x55ff55;
+    }
+
+    isTutorialCompleted = false;
+    tutorialCompletedFadeout = 0;
 
     transactionTiming = 0;
     moneyPerDt = 0;
@@ -268,7 +383,6 @@ export class Ui {
     prevAmountShown = 0;
     processTransations(dt: number) {
         if (this.transationQueue.length == 0) return;
-
         if (this.transactionTiming == 0) {
             this.moneyChangeReason.text = this.transationQueue[0].reason;
             this.moneyChange.text = this.transationQueue[0].amount.toFixed(0) + "c";

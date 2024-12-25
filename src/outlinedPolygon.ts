@@ -18,8 +18,9 @@ export class OutlinedPolygon {
     drawSkipFrames = 60 / 10;
     drawFrameSkip = 0;
 
-    draw(dt: number) {3
-        if(game.camera.zoom < 0.2) return;
+    draw(dt: number) {
+        3;
+        if (game.camera.zoom < 0.2) return;
         this.drawFrameSkip += dt;
         while (this.drawFrameSkip > this.drawSkipFrames) {
             this.drawFrameSkip -= this.drawSkipFrames;
@@ -38,11 +39,13 @@ export class OutlinedPolygon {
 
         this.outlinePolygon();
         this.graphics.stroke({ color: game.stars[0].color, width: 4, alpha: 0.5, cap: "round" });
-        this.graphics.fill({ color: game.stars[0].color, alpha: 0.15 });
+
+        const matrix = this.graphics.getTransform();
+        matrix.scale(2, 2);
+        this.graphics.fill({ color: game.stars[0].color, texture: Assets.get("hash"), matrix, alpha: 0.15 });
 
         this.outlinePolygon();
         this.graphics.stroke({ color: game.stars[0].color, width: 2, cap: "round" });
-        
     }
 
     private outlinePolygon() {

@@ -22,6 +22,10 @@
     "gate": "./gate.png",
     "customer": "./customer.png",
     "customer_bg": "./instructor_bg.png",
+    "bartender": "./bartender.png",
+    "bartender_bg": "./bartender_bg.png",
+    "commander": "./commander.png",
+    "commander_bg": "./commander_bg.png",
     "sticky": "./sticky.png",
     "loan_form": "./loan_form.png",
     "pen": "./pen.png",
@@ -35,5 +39,11 @@
     "ghost_gun": "./ghost_gun.png",
     "missile": "./missile.png",
     "civ_butterfly": "./civ_butterfly.png",
+    "progress": "./progress.png",
+    "9slice": "./9slice.png",
+    "liability": "./liability.png",
+    "record1": "./nasaEarthNumbers.png",
+    "record2": "./music.png",
+    "record3": "./manWithDog.png",
     "blob": "./blob.png"
 }

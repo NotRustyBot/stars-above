@@ -3,7 +3,6 @@ import { game } from "./game";
 import { Vector } from "./types";
 import { OutlinedPolygon } from "./outlinedPolygon";
 import { LightMask } from "./lightMask";
-import ghostPolygon from "./ghost.json";
 import path from "./testPath.json";
 import { GhostMissile } from "./ghostMissile";
 import { Flak } from "./flak";
@@ -47,9 +46,9 @@ export class Ghost {
         this.container.addChild(this.gunA);
         this.container.addChild(this.gunB);
 
-        const usePolygon = ghostPolygon.map((v) => new Vector(v.x * 3, v.y * 3));
+        //const usePolygon = ghostPolygon.map((v) => new Vector(v.x * 3, v.y * 3));
 
-        this.outlinedPolygon = new OutlinedPolygon(usePolygon, this.graphics);
+        //this.outlinedPolygon = new OutlinedPolygon(usePolygon, this.graphics);
 
         this.lightMask = new LightMask(this.sprite);
         this.lightMaskGunA = new LightMask(this.gunA);
@@ -57,7 +56,6 @@ export class Ghost {
         this.container.rotation = 2;
 
         this.position.set(path[0].x, path[0].y);
-        console.log(this.position);
     }
 
     timer = 0;
@@ -69,6 +67,11 @@ export class Ghost {
 
     get nextPosition() {
         return path[this.pathPoint % path.length]
+    }
+
+    remove() {
+        this.container.destroy();
+        game.ghost = undefined;
     }
 
     update(dt: number) {
